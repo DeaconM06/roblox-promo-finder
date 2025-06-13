@@ -21,6 +21,17 @@
       margin-bottom: 1rem;
       border-radius: 5px;
     }
+    form {
+      margin-top: 2rem;
+    }
+    input[type="text"] {
+      padding: 0.5rem;
+      width: 300px;
+      margin-right: 0.5rem;
+    }
+    button {
+      padding: 0.5rem 1rem;
+    }
   </style>
 </head>
 <body>
@@ -28,12 +39,19 @@
   <button onclick="fetchPromoCodes()">Search for Promo Codes</button>
   <div id="results"></div>
 
+  <form onsubmit="submitCode(event)">
+    <h3>Submit a Promo Code</h3>
+    <input type="text" id="userCode" placeholder="Enter promo code..." required />
+    <button type="submit">Submit</button>
+  </form>
+
   <script>
+    const userCodes = [];
+
     async function fetchPromoCodes() {
       const results = document.getElementById('results');
       results.innerHTML = '<p>Searching...</p>';
 
-      // Example list of sources (placeholder for now)
       const sources = [
         'https://www.roblox.com/promocodes',
         'https://rbxcodes.com/',
@@ -46,8 +64,27 @@
         })
       );
 
-      results.innerHTML = promoData.join('');
+      const submittedCodes = userCodes.map(code => `<div class='code'><strong>User Submitted Code:</strong> ${code}</div>`);
+
+      results.innerHTML = promoData.concat(submittedCodes).join('');
     }
+
+    function submitCode(event) {
+      event.preventDefault();
+      const codeInput = document.getElementById('userCode');
+      const newCode = codeInput.value.trim();
+      if (newCode) {
+        userCodes.push(newCode);
+        codeInput.value = '';
+        fetchPromoCodes();
+      }
+    }
+
+    // Auto-refresh every 10 minutes
+    setInterval(fetchPromoCodes, 10 * 60 * 1000);
+
+    // Initial load
+    fetchPromoCodes();
   </script>
 </body>
 </html>
