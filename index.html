@@ -46,7 +46,26 @@
   </form>
 
   <script>
-    const userCodes = [];
+    const STORAGE_KEY = 'userPromoCodes';
+
+    function loadStoredCodes() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveStoredCodes(codes) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(codes));
+      } catch {
+        console.error("Failed to store codes");
+      }
+    }
+
+    let userCodes = loadStoredCodes();
 
     async function fetchPromoCodes() {
       const results = document.getElementById('results');
@@ -64,7 +83,7 @@
         })
       );
 
-      const submittedCodes = userCodes.map(code => `<div class='code'><strong>User Submitted Code:</strong> ${code}</div>`);
+      const submittedCodes = userCodes.map(code => `<div class='code'><strong>User Submitted Code:</strong> ${code} <button onclick="checkCode('${code}')">Check</button></div>`);
 
       results.innerHTML = promoData.concat(submittedCodes).join('');
     }
@@ -73,11 +92,17 @@
       event.preventDefault();
       const codeInput = document.getElementById('userCode');
       const newCode = codeInput.value.trim();
-      if (newCode) {
+      if (newCode && !userCodes.includes(newCode)) {
         userCodes.push(newCode);
+        saveStoredCodes(userCodes);
         codeInput.value = '';
         fetchPromoCodes();
       }
+    }
+
+    function checkCode(code) {
+      alert(`This feature would verify the code: ${code} (demo placeholder)`);
+      // A real implementation would require a server-side component to validate promo codes.
     }
 
     // Auto-refresh every 10 minutes
