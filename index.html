@@ -8,8 +8,14 @@
     body {
       font-family: Arial, sans-serif;
       background: #f5f5f5;
+      color: #222;
       padding: 2rem;
       text-align: center;
+      transition: background 0.3s, color 0.3s;
+    }
+    .dark-mode {
+      background: #1e1e1e;
+      color: #eee;
     }
     #results {
       margin-top: 2rem;
@@ -20,6 +26,11 @@
       padding: 1rem;
       margin-bottom: 1rem;
       border-radius: 5px;
+      transition: background 0.3s;
+    }
+    .dark-mode .code {
+      background: #2c2c2c;
+      border-color: #444;
     }
     form {
       margin-top: 2rem;
@@ -32,21 +43,31 @@
     button {
       padding: 0.5rem 1rem;
     }
+    .copy-btn, .vote-btn {
+      margin-left: 0.5rem;
+    }
+    .timestamp {
+      font-size: 0.85rem;
+      color: gray;
+    }
   </style>
 </head>
 <body>
   <h1>Roblox Promo Code Finder</h1>
   <button onclick="fetchPromoCodes()">Search for Promo Codes</button>
+  <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
   <div id="results"></div>
 
   <form onsubmit="submitCode(event)">
     <h3>Submit a Promo Code</h3>
     <input type="text" id="userCode" placeholder="Enter promo code..." required />
     <button type="submit">Submit</button>
+    <p id="submissionFeedback"></p>
   </form>
 
   <script>
     const STORAGE_KEY = 'userPromoCodes';
+    const MODE_KEY = 'themeMode';
 
     function loadStoredCodes() {
       try {
@@ -62,6 +83,18 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(codes));
       } catch {
         console.error("Failed to store codes");
+      }
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem(MODE_KEY, document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+    }
+
+    function applySavedTheme() {
+      const mode = localStorage.getItem(MODE_KEY);
+      if (mode === 'dark') {
+        document.body.classList.add('dark-mode');
       }
     }
 
@@ -83,7 +116,14 @@
         })
       );
 
-      const submittedCodes = userCodes.map(code => `<div class='code'><strong>User Submitted Code:</strong> ${code} <button onclick="checkCode('${code}')">Check</button></div>`);
+      const submittedCodes = userCodes.map(({ code, timestamp }) => {
+        const formattedTime = new Date(timestamp).toLocaleString();
+        return `<div class='code'><strong>User Submitted Code:</strong> ${code}
+          <button class='copy-btn' onclick="copyCode('${code}')">Copy</button>
+          <button onclick="checkCode('${code}')">Check</button>
+          <div class='timestamp'>Submitted on ${formattedTime}</div>
+        </div>`;
+      });
 
       results.innerHTML = promoData.concat(submittedCodes).join('');
     }
@@ -91,24 +131,37 @@
     function submitCode(event) {
       event.preventDefault();
       const codeInput = document.getElementById('userCode');
+      const feedback = document.getElementById('submissionFeedback');
       const newCode = codeInput.value.trim();
-      if (newCode && !userCodes.includes(newCode)) {
-        userCodes.push(newCode);
-        saveStoredCodes(userCodes);
-        codeInput.value = '';
-        fetchPromoCodes();
+      if (!newCode) return;
+
+      if (userCodes.find(obj => obj.code.toLowerCase() === newCode.toLowerCase())) {
+        feedback.textContent = "Code already submitted.";
+        feedback.style.color = "red";
+        return;
       }
+
+      const timestamp = Date.now();
+      userCodes.push({ code: newCode, timestamp });
+      saveStoredCodes(userCodes);
+      codeInput.value = '';
+      feedback.textContent = "Code submitted!";
+      feedback.style.color = "green";
+      fetchPromoCodes();
     }
 
     function checkCode(code) {
       alert(`This feature would verify the code: ${code} (demo placeholder)`);
-      // A real implementation would require a server-side component to validate promo codes.
     }
 
-    // Auto-refresh every 10 minutes
-    setInterval(fetchPromoCodes, 10 * 60 * 1000);
+    function copyCode(code) {
+      navigator.clipboard.writeText(code).then(() => {
+        alert(`Copied: ${code}`);
+      });
+    }
 
-    // Initial load
+    setInterval(fetchPromoCodes, 10 * 60 * 1000);
+    applySavedTheme();
     fetchPromoCodes();
   </script>
 </body>
