@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Roblox Promo Code Finder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      padding: 2rem;
+      text-align: center;
+    }
+    #results {
+      margin-top: 2rem;
+    }
+    .code {
+      background: white;
+      border: 1px solid #ddd;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Roblox Promo Code Finder</h1>
+  <button onclick="fetchPromoCodes()">Search for Promo Codes</button>
+  <div id="results"></div>
+
+  <script>
+    async function fetchPromoCodes() {
+      const results = document.getElementById('results');
+      results.innerHTML = '<p>Searching...</p>';
+
+      // Example list of sources (placeholder for now)
+      const sources = [
+        'https://www.roblox.com/promocodes',
+        'https://rbxcodes.com/',
+        'https://progameguides.com/roblox/roblox-promo-codes/'
+      ];
+
+      const promoData = await Promise.all(
+        sources.map(async (url) => {
+          return `<div class='code'><strong>Source:</strong> <a href='${url}' target='_blank'>${url}</a><br><em>Click to check manually</em></div>`;
+        })
+      );
+
+      results.innerHTML = promoData.join('');
+    }
+  </script>
+</body>
+</html>
